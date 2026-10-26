@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_fcm_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_fcm';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class FcmResult {
+  /// Creates a result.
   const FcmResult({
     this.projectId,
     this.messageName,
@@ -70,8 +71,13 @@ class FcmResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class FcmCallResult<T> {
+  /// Creates a call result.
   const FcmCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final FcmResult? result;
 }
@@ -97,68 +103,68 @@ Future<T> tracedFcm<T>({
   final span = _tracer().startSpan(
     'fcm $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.projectId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.project.id',
           r.result!.projectId!,
         ));
       }
       if (r.result!.messageName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.message.name',
           r.result!.messageName!,
         ));
       }
       if (r.result!.targetType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.target.type',
           r.result!.targetType!,
         ));
       }
       if (r.result!.target != null) {
-        extras.add(OTel.attributeString('fcm.target', r.result!.target!));
+        extras.add(OTelAPI.attributeString('fcm.target', r.result!.target!));
       }
       if (r.result!.platform != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.platform',
           r.result!.platform!,
         ));
       }
       if (r.result!.priority != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.priority',
           r.result!.priority!,
         ));
       }
       if (r.result!.collapseKey != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.collapse.key',
           r.result!.collapseKey!,
         ));
       }
       if (r.result!.timeToLiveSec != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'fcm.ttl.sec',
           r.result!.timeToLiveSec!,
         ));
       }
       if (r.result!.dryRun != null) {
-        extras.add(OTel.attributeBool('fcm.dry_run', r.result!.dryRun!));
+        extras.add(OTelAPI.attributeBool('fcm.dry_run', r.result!.dryRun!));
       }
       if (r.result!.successCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'fcm.batch.success_count',
           r.result!.successCount!,
         ));
       }
       if (r.result!.failureCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'fcm.batch.failure_count',
           r.result!.failureCount!,
         ));
@@ -172,7 +178,7 @@ Future<T> tracedFcm<T>({
         }
       }
       if (r.result!.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'fcm.error.code',
           r.result!.errorCode!,
         ));
@@ -182,7 +188,7 @@ Future<T> tracedFcm<T>({
         );
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -193,13 +199,13 @@ Future<T> tracedFcm<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
